@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-// import AddComment from "./AddComment";
 import { v4 as uuidv4 } from "uuid";
 import {
   Modal,
@@ -11,62 +10,126 @@ import {
 function Comment() {
   const [addComment, setAddComment] = useState({ text: "", id: "" });
   const [commentBox, setCommentBox] = useState([]);
+  const [commentId, setCommentId] = useState(null);
+  const [commentReply, setCommentReply] = useState({
+    reply: "",
+    replyId: null,
+    like: 0,
+  });
+  const [replyOpen, setReplyOpen] = useState(false);
   const [open, setOpen] = useState(false);
   console.log("box", commentBox);
-  const [isClicked, setIsClicked] = useState(false);
 
   console.log("addComment", addComment);
   const handleChange = (e) => {
-    setAddComment({ text: e.target.value, id: uuidv4(), like: [] });
+    setAddComment({ text: e.target.value, id: uuidv4(), likes: [] });
   };
 
-  const handleClick = () => {
-    setCommentBox((prevBox) => [...prevBox, addComment]);
-    // setAddComment("");
-  };
+
   const handleReply = (id) => {
-    console.log(id, "id");
-    const found = commentBox.find((comment) => id === comment.id);
-    console.log("found1", found);
-    const index = commentBox.findIndex((comment) => id === comment.id);
-
-    let copy = [...commentBox];
-    if (found) {
-      console.log("found", found);
-      copy[index] = {
-        ...found,
-        like: [
-          ...found.like,
-          {
-            reply: found.reply,
-            replyId: found.replyId,
-            likes: 0,
-          },
-        ],
-      };
-      return copy;
-    }
-    setCommentBox(copy);
-    return copy;
+    setCommentId(id);
+  };
+  const handleDelete = (id) => {
+    const updated = commentBox.filter((item) => item.id !== id);
+    setCommentBox(updated);
   };
 
-  const renderedList = commentBox.map((item) => {
-    return (
-      <div key={item.id}>
-        <div>{item.text}</div>
-        <button
-          onClick={() => {
-            handleReply(item.id);
-            setOpen(true);
-          }}
-        >
-          {" "}
-          REPLY
-        </button>
-        <button>DELETE</button>
-      </div>
+  const handleLike = (id, replyId) => {
+    const replyFound = commentBox.find((comment) => id === comment.id);
+    const replyIndex = commentBox.findIndex((comment) => id === comment.id);
+    const myReply = replyFound.likes.map((item) => {
+      if (item.replyId === replyId) {
+        return { ...item, like: item.like + 1 };
+      } else {
+        return item;
+      }
+    });
+    const replyBox = [...commentBox];
+    replyBox[replyIndex] = { ...replyFound, likes: myReply };
+    setCommentBox(replyBox);
+    console.log("replyFound", replyFound);
+  };
+
+
+  const handleDelReply = (id, replyId) => {
+    const replyFound = commentBox.find((comment) => id === comment.id);
+    const replyIndex = commentBox.findIndex((comment) => id === comment.id);
+    const delReply = replyFound.likes.filter(
+      (item) => item.replyId !== replyId
     );
-  });
+    const replyBox = [...commentBox];
+    replyBox[replyIndex] = { ...replyFound, likes: delReply };
+    console.log("replyBox");
+    setCommentBox(replyBox);
+  };
+
+  const renderedList = () => {
+    return commentBox.map((item) => {
+      console.log("itemlikes", item.likes);
+      return (
+        <div key={item.id} style={{ border: "3px solid blue", margin: "10px" }}>
+          <div>{item.text}</div>
+          <button
+            onClick={() => {
+              handleReply(item.id);
+              setReplyOpen(true);
+            }}
+          >
+            {" "}
+            REPLY
+          </button>
+          <button onClick={() => handleDelete(item.id)}>DELETE</button>
+          <div>
+            {item.likes.map((myReply) => {
+              console.log(myReply, "myr");
+              return (
+                <div
+                  key={myReply.replyId}
+                  style={{
+                    border: "2px solid yellow",
+                    margin: "5px",
+                    background: "#333",
+                    color: "white",
+                  }}
+                >
+                  <div>{myReply.reply}</div>
+
+                  <button onClick={() => handleLike(item.id, myReply.replyId)}>
+                    {`${myReply.like}LIKES`}
+                  </button>
+                  <button
+                    onClick={() => handleDelReply(item.id, myReply.replyId)}
+                  >
+                    DELETE
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    });
+  };
+
+  const handleReplyChange = (e) => {
+    setCommentReply({ ...commentReply, reply: e.target.value });
+  };
+
+  const handleMyReply = () => {
+    const found = commentBox.find((comment) => commentId === comment.id);
+    const index = commentBox.findIndex((comment) => commentId === comment.id);
+    const newBox = [...commentBox];
+    console.log("found", found);
+    if (found) {
+      newBox[index] = {
+        ...found,
+        likes: [...found.likes, { ...commentReply, replyId: uuidv4() }],
+      };
+    }
+    setCommentBox(newBox);
+    setCommentReply({ reply: "", replyId: null, like: 0 });
+    setReplyOpen(false);
+  };
 
   return (
     <div>
@@ -108,41 +171,19 @@ function Comment() {
           </Button>
         </ModalFooter>
       </Modal>
+
+      <div>{commentBox && renderedList()}</div>
       <div>
-        <div>
-          <div>
-            <input
-              type="text"
-              placeholder="type ur comment here"
-              onChange={handleChange}
-            />
-          </div>
-          <div>
-            <button onClick={handleClick}>Comment</button>
-            <button>Cancel </button>
-          </div>
-        </div>
-      </div>
-      <div>{commentBox && renderedList}</div>
-      <div>
-        <Modal show={open}>
+        <Modal show={replyOpen}>
           <ModalBody>
             <FormControl
-              value={addComment.text}
-              onChange={handleChange}
-              placeholder="Type Your Comment Here"
+              value={commentReply.reply}
+              onChange={handleReplyChange}
+              placeholder="Type Your Reply Here"
             />
           </ModalBody>
           <ModalFooter>
-            <Button
-              onClick={() => {
-                setOpen(false);
-                setCommentBox((prevBox) => [...prevBox, addComment]);
-                setAddComment({ text: "", id: "" });
-              }}
-            >
-              Comment
-            </Button>
+            <Button onClick={handleMyReply}>REPLY</Button>
             <Button
               onClick={() => {
                 setOpen(false);
