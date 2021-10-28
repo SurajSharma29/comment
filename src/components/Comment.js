@@ -25,7 +25,6 @@ function Comment() {
     setAddComment({ text: e.target.value, id: uuidv4(), likes: [] });
   };
 
-
   const handleReply = (id) => {
     setCommentId(id);
   };
@@ -50,7 +49,6 @@ function Comment() {
     console.log("replyFound", replyFound);
   };
 
-
   const handleDelReply = (id, replyId) => {
     const replyFound = commentBox.find((comment) => id === comment.id);
     const replyIndex = commentBox.findIndex((comment) => id === comment.id);
@@ -67,18 +65,55 @@ function Comment() {
     return commentBox.map((item) => {
       console.log("itemlikes", item.likes);
       return (
-        <div key={item.id} style={{ border: "3px solid blue", margin: "10px" }}>
-          <div>{item.text}</div>
-          <button
-            onClick={() => {
-              handleReply(item.id);
-              setReplyOpen(true);
-            }}
-          >
-            {" "}
-            REPLY
-          </button>
-          <button onClick={() => handleDelete(item.id)}>DELETE</button>
+        <div
+          key={item.id}
+          style={{
+            border: "none",
+            margin: "10px",
+            padding: "10px",
+            borderRadius: "15px",
+            background: "#E6E6E6",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "flex-start" }}>
+            <div
+              style={{
+                color: "blue",
+                background: "white",
+                borderRadius: "10px",
+                width: "70%",
+              }}
+            >
+              <h2 style={{}}>{item.text}</h2>
+            </div>
+            <div style={{ margin: "5px" }}>
+              <button
+                onClick={() => {
+                  handleReply(item.id);
+                  setReplyOpen(true);
+                }}
+                style={{
+                  background: "green",
+                  borderRadius: "10px",
+                  border: "none",
+                  
+                }}
+              >
+                {" "}
+                REPLY
+              </button>
+              <button
+                onClick={() => handleDelete(item.id)}
+                style={{
+                  background: "red",
+                  borderRadius: "10px",
+                  border: "none",
+                }}
+              >
+                DELETE
+              </button>
+            </div>
+          </div>
           <div>
             {item.likes.map((myReply) => {
               console.log(myReply, "myr");
@@ -86,22 +121,44 @@ function Comment() {
                 <div
                   key={myReply.replyId}
                   style={{
-                    border: "2px solid yellow",
-                    margin: "5px",
-                    background: "#333",
-                    color: "white",
+                    border: "none",
+                    margin: "10px",
+                    padding: "10px",
+                    borderRadius: "15px",
+                    background: "#E6E6E6",
                   }}
                 >
-                  <div>{myReply.reply}</div>
-
-                  <button onClick={() => handleLike(item.id, myReply.replyId)}>
-                    {`${myReply.like}LIKES`}
-                  </button>
-                  <button
-                    onClick={() => handleDelReply(item.id, myReply.replyId)}
+                  <div
+                    style={{
+                      color: "blue",
+                      borderRadius: "10px",
+                      width: "70%",
+                    }}
                   >
-                    DELETE
-                  </button>
+                    <h4>{myReply.reply}</h4>
+                  </div>
+                  <div style={{}}>
+                    <button
+                      onClick={() => handleLike(item.id, myReply.replyId)}
+                      style={{
+                        background: "#B2F9FC",
+                        borderRadius: "8px",
+                        border: "none",
+                      }}
+                    >
+                      {`${myReply.like}LIKES`}
+                    </button>
+                    <button
+                      onClick={() => handleDelReply(item.id, myReply.replyId)}
+                      style={{
+                        background: "red",
+                        borderRadius: "10px",
+                        border: "none",
+                      }}
+                    >
+                      DELETE
+                    </button>
+                  </div>
                 </div>
               );
             })}
